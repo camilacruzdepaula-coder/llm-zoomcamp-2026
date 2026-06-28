@@ -48,11 +48,11 @@ class RAGBase:
         lines = []
 
         for doc in search_results:
-            lines.append(doc['filename'])
-            lines.append('content: ' + doc['content'])
-            #lines.append(doc['section'])
-            #lines.append('Q: ' + doc['question'])
-            #lines.append('A: ' + doc['answer'])
+            #lines.append(doc['filename'])
+            #lines.append('content: ' + doc['content'])
+            lines.append(doc['section'])
+            lines.append('Q: ' + doc['question'])
+            lines.append('A: ' + doc['answer'])
             lines.append('')
 
         return '\n'.join(lines).strip()
@@ -81,3 +81,21 @@ class RAGBase:
         prompt = self.build_prompt(query, search_results)
         answer = self.llm(prompt)
         return answer
+
+
+
+class RAGVector(RAGBase):
+
+    def __init__(self, embedder, **kwargs):
+        super().__init__(**kwargs)
+        self.embedder = embedder
+
+    def search(self, query, num_results=5):
+        query_vector = self.embedder.encode(query)
+        filter_dict = {"course": self.course}
+
+        return self.index.search(
+            query_vector,
+            num_results=num_results,
+            filter_dict=filter_dict
+        )
